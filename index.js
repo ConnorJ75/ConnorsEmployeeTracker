@@ -85,7 +85,38 @@ function addRole(){
     })
 }
 
-
+function addEmployee(){
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "first",
+            message: "Please enter the employee's first name: "
+        },
+        {
+            type: "input",
+            name: "last",
+            message: "Please enter the employee's last name: "
+        },
+        {
+            type: "input",
+            name: "role_id",
+            message: "Please enter the employee's role id: "
+        },
+        {
+            type: "input",
+            name: "manager_id",
+            message: "Please enter the employee's manager's id: "
+        }
+    ]).then(function(res) {
+        connection.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)', [res.first, res.last, res.role_id, res.manager_id], function(err, data) {
+            if (err) throw err;
+            console.table("The new employee has been added.");
+            connection.query("SELECT * FROM employee", function (err, data) {
+                console.table(data);
+            })
+        })
+    })
+}
 
 inquirer.prompt(questions).then((responses)=>{
     console.log(responses);
@@ -105,7 +136,7 @@ inquirer.prompt(questions).then((responses)=>{
         addRole();
     }
     else if(responses.choice === 'add an employee'){
-        
+        addEmployee();
     }
     else if(responses.choice === 'update an employee role'){
         
