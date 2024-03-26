@@ -10,34 +10,26 @@ var connection = mysql.createConnection({
 });
 connection.connect(function (err) {
     if (err) throw err;
-    console.log("Connected!");
 });
-
-
-const questions = [
-    {
-        type: "list",
-        name: "choice",
-        message: "What would you like to do?:",
-        choices: ['view all departments', 'view all roles', 'view all employees', 'add a department', 'add a role', 'add an employee', 'update an employee role']
-    }
-]
 
 function viewAllDepartments(){
     connection.query("SELECT * FROM department", function (err, data) {
         console.table(data);
+        displayChoices();
     })
 }
 
 function viewAllRoles(){
     connection.query("SELECT * FROM role", function (err, data) {
         console.table(data);
+        displayChoices();
     })
 }
 
 function viewAllEmployees(){
     connection.query("SELECT * FROM employee", function (err, data) {
         console.table(data);
+        displayChoices();
     })
 }
 
@@ -52,6 +44,7 @@ function addDepartment(){
             console.table("The new department has been added.");
             connection.query("SELECT * FROM department", function (err, data) {
                 console.table(data);
+                displayChoices();
             })
         })
     })
@@ -80,6 +73,7 @@ function addRole(){
             console.table("The new role has been added.");
             connection.query("SELECT * FROM role", function (err, data) {
                 console.table(data);
+                displayChoices();
             })
         })
     })
@@ -113,32 +107,81 @@ function addEmployee(){
             console.table("The new employee has been added.");
             connection.query("SELECT * FROM employee", function (err, data) {
                 console.table(data);
+                displayChoices();
             })
         })
     })
 }
 
-inquirer.prompt(questions).then((responses)=>{
-    console.log(responses);
-    if (responses.choice === 'view all departments'){
-        viewAllDepartments();
+function updateEmployeeRole(){
+    inquirer.prompt([
+        {
+            message: "Please enter the employee's id you would like to switch the role of:",
+            type: "input",
+            name: "employee_id"
+        }, {
+            message: "Please enter the new role id you would like to assign to this employee:",
+            type: "input",
+            name: "new_role_id"
+        }
+    ])
+    .then(function(response) {
+        connection.query("UPDATE employee SET role_id = ? WHERE id = ?", [response.new_role_id, response.employee_id], function (err, data) 
+        {
+            if (err) throw err;
+            console.log(`Role has officially been switched for employee id: ${response.employee_id}`);
+            connection.query("SELECT * FROM employee", function (err, data) {
+                console.table(data);
+                displayChoices();
+            })
+        })
+    })
+}
+
+const questions = [
+    {
+        type: "list",
+        name: "choice",
+        message: "What would you like to do?:",
+        choices: ['view all departments', 'view all roles', 'view all employees', 'add a department', 'add a role', 'add an employee', 'update an employee role', 'quit']
     }
-    else if(responses.choice === 'view all roles'){
-        viewAllRoles();
-    }
-    else if(responses.choice === 'view all employees'){
-        viewAllEmployees();
-    }
-    else if(responses.choice === 'add a department'){
-        addDepartment();
-    }
-    else if(responses.choice === 'add a role'){
-        addRole();
-    }
-    else if(responses.choice === 'add an employee'){
-        addEmployee();
-    }
-    else if(responses.choice === 'update an employee role'){
-        
-    }
-});
+]
+
+
+async function displayChoices(){
+    console.log("\n");
+    inquirer.prompt(questions)
+    .then((responses)=>{
+        let c = responses.choice;
+        if (c === 'view all departments'){
+            viewAllDepartments();
+        }
+        else if(c === 'view all roles'){
+            viewAllRoles();
+        }
+        else if(c === 'view all employees'){
+            viewAllEmployees();
+        }
+        else if(c === 'add a department'){
+            addDepartment();
+        }
+        else if(c === 'add a role'){
+            addRole();
+        }
+        else if(c === 'add an employee'){
+            addEmployee();
+        }
+        else if(c === 'update an employee role'){
+            updateEmployeeRole();
+        }
+        else{
+            console.log("Goodbye.");
+            return;
+        }
+    });
+}
+
+displayChoices();
+
+
+
